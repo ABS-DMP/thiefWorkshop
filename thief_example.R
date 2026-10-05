@@ -91,3 +91,43 @@ for (j in 1:p){
   
   legend("topleft",c("Data","ARIMA","THieF"),col=c("black",cmp[1:2]),lty=1,lwd=2,cex=0.9,bty="n")
 }
+
+# Ruta de los datos
+data_dir <- "data/raw"
+
+# Comprobar que R encuentra los archivos
+list.files(data_dir)
+
+# Leer inicialmente el precio sin transformar nada
+precio_raw <- read.csv(
+  file.path(data_dir, "precio_2020_2026.csv"),
+  check.names = FALSE
+)
+
+# Inspeccionar estructura
+names(precio_raw)
+str(precio_raw)
+head(precio_raw, 10)> ncol(precio_raw)
+
+# ============================================================
+# Construir serie temporal horaria del precio SPOT español
+# ============================================================
+
+# Serie horaria con ciclo diario de 24 horas
+precio_ts <- ts(
+  precio_es$value,
+  frequency = 24
+)
+
+# Comprobar
+frequency(precio_ts)
+length(precio_ts)
+
+# Visualización inicial
+plot(
+  tail(precio_ts, 24 * 14),
+  type = "l",
+  main = "Precio SPOT España - últimas 2 semanas",
+  xlab = "Hora",
+  ylab = "Precio"
+)
