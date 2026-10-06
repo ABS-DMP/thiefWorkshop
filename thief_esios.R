@@ -10,6 +10,7 @@
 
 library(MAPA)
 library(tsutils)
+library(forecast)
 
 
 # ============================================================
@@ -109,19 +110,91 @@ cat("Número de niveles:", p, "\n")
 # 8. AGREGACIÓN TEMPORAL
 # ============================================================
 
-# Creamos una serie para cada nivel de agregación:
-# k = 1  -> 1 hora
-# k = 2  -> bloques de 2 horas
-# k = 3  -> bloques de 3 horas
-# ...
-# k = 24 -> bloques de 24 horas
+# IMPORTANTE:
+# fmean = TRUE -> agregamos mediante la media
+# Para precios tiene más sentido económico que sumar precios.
 
 Y <- tsaggr(
   precio_ts,
   k,
-  FALSE,
+  TRUE,
   FALSE
 )
 
+if (exists("Y")) {
+  cat("Agregación temporal completada.\n")
+}
 # Inspeccionar el resultado
-print(Y)
+# print(Y)
+
+# ============================================================
+# 9. HORIZONTE DE PREDICCIÓN
+# ============================================================
+
+# Queremos predecir las siguientes 24 horas
+h <- 24
+
+# Horizonte equivalente para cada nivel de agregación
+H <- h / k
+
+cat("Horizonte original:", h, "horas\n")
+
+for (j in 1:p) {
+  cat(
+    "k =", k[j],
+    "| horizonte =", H[j],
+    "observaciones\n"
+  )
+}
+
+# ============================================================
+# 10. BASE FORECASTS: ARIMA EN CADA NIVEL
+# ============================================================
+
+# Lista donde guardaremos los forecasts de cada nivel
+frc <- list()
+
+for (j in 1:p) {
+
+  # Serie correspondiente al nivel de agregación j
+  temp <- Y[[1]][[j]]
+
+  # Número de observaciones disponibles
+  n <- length(temp)
+
+  # Dejamos fuera el último horizonte como test
+  tempTrn <- head(temp, n - H[j])
+
+  cat(
+    "Entrenando nivel k =", k[j],
+    "| n train =", length(tempTrn),
+    "| horizonte =", H[j],
+    "\n"
+  )
+
+  # Selección y ajuste automático del ARIMA
+  fit <- auto.arima(tempTrn)
+
+  # Forecast
+  frc[[j]] <- forecast(
+    fit,
+    h = H[j]
+  )$mean
+}
+
+# ============================================================
+# 10.1 GUARDAR FORECASTS BASE
+# ============================================================
+
+dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
+
+saveRDS(
+  frc,
+  "data/processed/frc_arima_base.rds"
+)
+
+# ============================================================
+# 11. MATRIZ S PARA PRECIOS MEDIOS
+# ============================================================
+
+
