@@ -151,50 +151,57 @@ for (j in 1:p) {
 # 10. BASE FORECASTS: ARIMA EN CADA NIVEL
 # ============================================================
 
-# Lista donde guardaremos los forecasts de cada nivel
-frc <- list()
+forecast_file <- "data/processed/frc_arima_base.rds"
 
-for (j in 1:p) {
+if (file.exists(forecast_file)) {
 
-  # Serie correspondiente al nivel de agregación j
-  temp <- Y[[1]][[j]]
+  cat("Cargando forecasts ARIMA guardados...\n")
+  frc <- readRDS(forecast_file)
 
-  # Número de observaciones disponibles
-  n <- length(temp)
+} else {
 
-  # Dejamos fuera el último horizonte como test
-  tempTrn <- head(temp, n - H[j])
+  cat("Calculando forecasts ARIMA...\n")
 
-  cat(
-    "Entrenando nivel k =", k[j],
-    "| n train =", length(tempTrn),
-    "| horizonte =", H[j],
-    "\n"
-  )
+  frc <- list()
 
-  # Selección y ajuste automático del ARIMA
-  fit <- auto.arima(tempTrn)
+  for (j in 1:p) {
 
-  # Forecast
-  frc[[j]] <- forecast(
-    fit,
-    h = H[j]
-  )$mean
+    temp <- Y[[1]][[j]]
+    n <- length(temp)
+
+    tempTrn <- head(temp, n - H[j])
+
+    fit <- auto.arima(tempTrn)
+
+    frc[[j]] <- forecast(
+      fit,
+      h = H[j]
+    )$mean
+  }
+
+  dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
+  saveRDS(frc, forecast_file)
 }
-
-# ============================================================
-# 10.1 GUARDAR FORECASTS BASE
-# ============================================================
-
-dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
-
-saveRDS(
-  frc,
-  "data/processed/frc_arima_base.rds"
-)
 
 # ============================================================
 # 11. MATRIZ S PARA PRECIOS MEDIOS
 # ============================================================
 
+# 11. MATRIZ S para THieF
+# La S debe reflejar cómo cada nivel agregado se relaciona con la serie original
+S <- tsutils::Sthief(Y[[1]][[1]])
+# Si en tu objeto aparece nombrado, también vale:
+# S <- tsutils::Sthief(Y[[1]]$AL1)
 
+# comprobación
+dim(S)
+
+# estimación de W y G
+W <- diag(1 / rowSums(S))
+G <- solve(t(S) %*% W %*% S) %*% t(S) %*% W
+
+# base forecasts apilados
+fbase <- cbind(unlist(rev(frc)))
+
+# reconciliación THieF
+freco <- S %*% G %*% fbase
