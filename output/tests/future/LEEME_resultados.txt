@@ -1,0 +1,24 @@
+THieF - ESIOS. Referencia: Kourentzes, ISF 2025.
+Modo: future | Observaciones: 1079
+Cache: C:\Users\aleja\Documents\source\repos\thiefWorkshop/data/processed/tests/frc_future.rds
+Medias de bloques horarios UTC anclados al final; no dias civiles locales.
+S: 60 x 24. Orden AL24, AL12, AL8, AL6, AL4, AL3, AL2, AL1.
+Diap. 27-42: agregacion, ARIMA independiente, S/W/G, coherencia y pesos.
+Diap. 36-40: estructural, varianzas y MinT; OLS como referencia adicional.
+Filas completas de residuos para W: 43
+MinT lambda: 0.245119304122502 | regularizacion: 0
+W estimada con residuos in-sample un paso: aproximacion, no covarianza conocida a 24 pasos.
+Diap. 66-67: metricas separadas por nivel; no media global de la jerarquia.
+Un solo bloque de test no demuestra superioridad general.
+Diap. 17-26: MAPA por estados activado: FALSE
+Diap. 69-72: MTA_equal ilustra repeticion + media, no el algoritmo MAPA.
+Diap. 65: dias de calibracion retrospectiva: 0
+Intervalos: bootstrap empirico de dias completos; sin garantia de cobertura futura.
+Los escenarios son coherentes; los cuantiles marginales no tienen por que serlo.
+Diap. 3-16, 43-50: motivacion/resultados publicados; no se reproducen sus estudios.
+Diap. 51-64: demanda intermitente, ciclos de vida, cross-temporal, exogenas y ML
+requieren modelos/datos/disenos especificos y no son pasos obligatorios para esta serie.
+Diap. 73-82: resultados teoricos y propuestas no publicadas; no se atribuye al
+script una replica de simulaciones o algoritmos sparse sin especificacion completa.
+Referencia complementaria: https://otexts.com/fpp3/reconciliation.html
+Intensidad de shrinkage: https://github.com/earowang/hts/blob/master/R/MinT.R
